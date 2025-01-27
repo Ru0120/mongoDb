@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/Enkhtuvshin0513/mongodb/issues"
   },
-  "homepage": "https://github.com/Enkhtuvshin0513/mongodb#readme"
+  "homepage": "https://github.com/Enkhtuvshin0513/mongodb#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
 }
