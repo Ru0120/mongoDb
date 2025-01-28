@@ -1,6 +1,5 @@
 import express from "express";
 import { client } from "../../../mongo.js";
-import { parse } from "dotenv";
 
 const route = express.Router();
 
@@ -42,11 +41,11 @@ route.get("/genre", async (req, res) => {
   res.json({
     success: true,
     pagination: { total: movieCount, page, limit, totalReturn: limit },
-    data: { movies }
+    data: { movies },
   });
 });
 
-route.get("/or", async (req, res) => {
+route.get("/and", async (req, res) => {
   let { genre, page = 1, limit = 10, year } = req.query;
 
   page = parseInt(page);
@@ -58,7 +57,7 @@ route.get("/or", async (req, res) => {
   }
 
   const query = {
-    $or: [{ genre: { $eq: genre } }, { year: { $eq: year } }]
+    $or: [{ genre: { $eq: genre } }, { year: { $eq: year } }],
   };
 
   const movies = await movies_collection
@@ -72,8 +71,58 @@ route.get("/or", async (req, res) => {
   res.json({
     success: true,
     pagination: { total: movieCount, page, limit, totalReturn: limit },
-    data: { movies }
+    data: { movies },
   });
+});
+route.get("/imdbID", async (req, res) => {
+  const { imdbID } = req.query;
+  const id = parseInt(imdbID);
+  if (!imdbID) {
+    res.json({ success: false, message: "ID required" });
+  }
+
+  const movie = await movies_collection.findOne({ "imdb.id": { $eq: id } });
+
+  res.json({ success: true, data: { movie } });
+});
+route.get("/year", async (req, res) => {
+  const { year } = req.query;
+  const year1 = parseInt(year);
+  if (!year) {
+    res.json({ success: false, message: "year required" });
+  }
+
+  const movie = await movies_collection.findOne({ year: { $eq: year1 } });
+
+  res.json({ success: true, data: { movie } });
+});
+route.get("/rating", async (req, res) => {
+  const { rating } = req.query;
+  const rate = parseInt(rating);
+  console.log(typeof rate);
+  if (!rate) {
+    res.json({ success: false, message: "rating required" });
+  }
+
+  const movie = await movies_collection.findOne({
+    "imdb.rating": { $eq: rate },
+  });
+
+  res.json({ success: true, data: { movie } });
+});
+route.get("/moreThan10m", async (req, res) => {
+  const { moreThan10m } = req.query;
+  const moreThan10mil = parseInt(moreThan10m);
+
+  if (!moreThan10mil) {
+    res.json({ success: false, message: "moreThan10mil required" });
+  }
+
+  const movie = await movies_collection.findOne({
+    "imdb.votes": { $gte: moreThan10mil },
+  });
+
+  res.json({ success: true, data: { movie } });
 });
 
 export { route };
