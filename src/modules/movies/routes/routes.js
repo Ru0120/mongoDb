@@ -20,10 +20,10 @@ route.get("/title", async (req, res) => {
 });
 
 route.get("/genre", async (req, res) => {
-  const { genre, page = 1, limit = 10 } = req.query;
+  let { genre, page = 1, limit = 10 } = req.query;
 
-  const parsedPage = parseInt(page);
-  const parsedLimit = parseInt(limit);
+  page = parseInt(page);
+  limit = parseInt(limit);
 
   if (!genre) {
     res.json({ success: false, message: "genre required" });
@@ -33,8 +33,38 @@ route.get("/genre", async (req, res) => {
 
   const movies = await movies_collection
     .find(query)
-    .skip((parsedPage - 1) * parsedLimit)
-    .limit(parsedLimit)
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+
+  const movieCount = await movies_collection.countDocuments(query);
+
+  res.json({
+    success: true,
+    pagination: { total: movieCount, page, limit, totalReturn: limit },
+    data: { movies }
+  });
+});
+
+route.get("/or", async (req, res) => {
+  let { genre, page = 1, limit = 10, year } = req.query;
+
+  page = parseInt(page);
+  limit = parseInt(limit);
+  year = parseInt(year);
+
+  if (!genre || !year) {
+    res.json({ success: false, message: "genre or year required" });
+  }
+
+  const query = {
+    $or: [{ genre: { $eq: genre } }, { year: { $eq: year } }]
+  };
+
+  const movies = await movies_collection
+    .find(query)
+    .skip((page - 1) * limit)
+    .limit(limit)
     .toArray();
 
   const movieCount = await movies_collection.countDocuments(query);
