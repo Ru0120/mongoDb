@@ -112,7 +112,9 @@ route.get("/rating", async (req, res) => {
 });
 route.get("/moreThan10m", async (req, res) => {
   const { moreThan10m } = req.query;
+  console.log(moreThan10m);
   const moreThan10mil = parseInt(moreThan10m);
+  console.log(moreThan10mil);
 
   if (!moreThan10mil) {
     res.json({ success: false, message: "moreThan10mil required" });
@@ -166,4 +168,60 @@ route.get("/director", async (req, res) => {
     data: { movies },
   });
 });
+
+route.get("/awards", async (req, res) => {
+  let { awards, page = 1, limit = 10 } = req.query;
+
+  const award = parseInt(awards);
+  page = parseInt(page);
+  limit = parseInt(limit);
+  if (!awards) {
+    res.json({ success: false, message: "awards required" });
+  }
+  const query = {
+    "awards.wins": { $gt: award },
+  };
+
+  const movies = await movies_collection
+    .find(query)
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+
+  const movieCount = await movies_collection.countDocuments(query);
+
+  res.json({
+    success: true,
+    pagination: { total: movieCount, page, limit, totalReturn: limit },
+    data: { movies },
+  });
+});
+route.get("/languages", async (req, res) => {
+  let { languages, page = 1, limit = 10 } = req.query;
+
+  const lan = parseInt(languages);
+  page = parseInt(page);
+  limit = parseInt(limit);
+  if (!languages) {
+    res.json({ success: false, message: "language required" });
+  }
+  const query = {
+    languages: { $in: [lan] },
+  };
+
+  const movies = await movies_collection
+    .find(query)
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+
+  const movieCount = await movies_collection.countDocuments(query);
+
+  res.json({
+    success: true,
+    pagination: { total: movieCount, page, limit, totalReturn: limit },
+    data: { movies },
+  });
+});
+
 export { route };
