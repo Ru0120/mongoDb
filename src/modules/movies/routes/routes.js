@@ -124,5 +124,46 @@ route.get("/moreThan10m", async (req, res) => {
 
   res.json({ success: true, data: { movie } });
 });
+route.get("/runtime", async (req, res) => {
+  const { runtime } = req.query;
+  const runTime90min = parseInt(runtime);
+  if (!runTime90min) {
+    res.json({ success: false, message: "runtime minute required" });
+  }
 
+  const movie = await movies_collection.findOne({
+    runtime: { $lt: runTime90min },
+  });
+
+  res.json({ success: true, data: { movie } });
+});
+route.get("/director", async (req, res) => {
+  let { director, page = 1, limit = 10 } = req.query;
+
+  page = parseInt(page);
+  limit = parseInt(limit);
+
+  if (!director) {
+    res.json({ success: false, message: "director required" });
+    return;
+  }
+
+  const query = {
+    directors: { $in: [director] },
+  };
+
+  const movies = await movies_collection
+    .find(query)
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+
+  const movieCount = await movies_collection.countDocuments(query);
+
+  res.json({
+    success: true,
+    pagination: { total: movieCount, page, limit, totalReturn: limit },
+    data: { movies },
+  });
+});
 export { route };
